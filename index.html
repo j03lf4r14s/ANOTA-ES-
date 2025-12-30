@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Controle do Paciente</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Poppins',Arial,sans-serif;
+  background:#8b7edb;
+}
+.background{
+  position:fixed;
+  inset:0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.08) 0px,
+      rgba(255,255,255,.08) 40px,
+      transparent 40px,
+      transparent 80px
+    ),
+    linear-gradient(135deg,#8b7edb,#6f64c9);
+  z-index:-1;
+}
+.app{
+  max-width:600px;
+  margin:80px auto;
+  padding:20px;
+}
+.card{
+  background:#fff;
+  border-radius:22px;
+  padding:26px;
+  box-shadow:0 25px 60px rgba(0,0,0,.25);
+}
+h2{
+  text-align:center;
+  color:#4f46e5;
+  margin-top:0;
+}
+label{
+  font-size:14px;
+  font-weight:500;
+  margin-top:12px;
+  display:block;
+}
+input,textarea{
+  width:100%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  background:#f9fafb;
+}
+textarea{min-height:90px}
+button{
+  width:100%;
+  background:linear-gradient(135deg,#6366f1,#4f46e5);
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  padding:12px;
+  font-size:15px;
+  font-weight:600;
+  margin-top:16px;
+  cursor:pointer;
+}
+.relogio{
+  text-align:center;
+  font-size:14px;
+  color:#6b7280;
+  margin-bottom:10px;
+}
+.registro{
+  background:#f9fafb;
+  padding:12px;
+  border-radius:12px;
+  margin-top:12px;
+  font-size:13px;
+  border:1px solid #e5e7eb;
+  position:relative;
+}
+.lixeira{
+  position:absolute;
+  top:8px;
+  right:10px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="background"></div>
+
+<div class="app">
+  <div class="card">
+
+    <h2>🧑‍⚕️ Controle do Paciente</h2>
+    <div class="relogio" id="relogio"></div>
+
+    <label>Nome do paciente</label>
+    <input id="paciente" placeholder="Digite o nome do paciente">
+
+    <label>Observações</label>
+    <textarea id="obs" placeholder="Anotações, uso de medicamentos, cuidados..."></textarea>
+
+    <button onclick="salvar()">Salvar registro</button>
+
+    <div id="historico"></div>
+
+  </div>
+</div>
+
+<script>
+/* RELÓGIO */
+setInterval(()=>{
+  document.getElementById("relogio").innerText =
+    "⏰ " + new Date().toLocaleTimeString("pt-BR");
+},1000);
+
+/* SALVAR REGISTRO */
+function salvar(){
+  const paciente = document.getElementById("paciente").value.trim();
+  const obs = document.getElementById("obs").value.trim();
+
+  if(!paciente){
+    alert("Informe o nome do paciente");
+    return;
+  }
+
+  let lista = JSON.parse(localStorage.getItem("historico_paciente")) || [];
+
+  lista.push({
+    id: Date.now(),
+    paciente: paciente,
+    obs: obs,
+    data: new Date().toLocaleString("pt-BR")
+  });
+
+  localStorage.setItem("historico_paciente", JSON.stringify(lista));
+
+  document.getElementById("paciente").value = "";
+  document.getElementById("obs").value = "";
+
+  render();
+}
+
+/* APAGAR REGISTRO */
+function apagar(id){
+  let lista = JSON.parse(localStorage.getItem("historico_paciente")) || [];
+  lista = lista.filter(item => item.id !== id);
+  localStorage.setItem("historico_paciente", JSON.stringify(lista));
+  render();
+}
+
+/* MOSTRAR HISTÓRICO */
+function render(){
+  const historico = document.getElementById("historico");
+  historico.innerHTML = "<h3>📚 Histórico</h3>";
+
+  let lista = JSON.parse(localStorage.getItem("historico_paciente")) || [];
+
+  lista.slice().reverse().forEach(item=>{
+    historico.innerHTML += `
+      <div class="registro">
+        <span class="lixeira" onclick="apagar(${item.id})">🗑️</span>
+        <strong>${item.paciente}</strong><br>
+        ${item.obs || ""}<br>
+        ${item.data}
+      </div>
+    `;
+  });
+}
+
+/* CARREGAR AO ABRIR */
+render();
+</script>
+
+</body>
+</html>
